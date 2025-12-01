@@ -1,0 +1,78 @@
+{% extends 'todos/base.html' %}
+
+{% block title %}{{ todo.title }} - Todo{% endblock %}
+
+{% block extra_styles %}
+.todo-card {
+background: white;
+padding: 30px;
+border-radius: 8px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.todo-card h1 {
+margin: 0 0 20px 0;
+color: #333;
+}
+.todo-card.completed h1 {
+text-decoration: line-through;
+color: #888;
+}
+.status {
+display: inline-block;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 14px;
+margin-bottom: 15px;
+}
+.status.done {
+background: #d4edda;
+color: #155724;
+}
+.status.pending {
+background: #fff3cd;
+color: #856404;
+}
+.meta {
+color: #666;
+font-size: 14px;
+margin-bottom: 20px;
+}
+.actions {
+display: flex;
+gap: 10px;
+margin-top: 20px;
+}
+.btn {
+padding: 10px 20px;
+font-size: 14px;
+}
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'todo_list' %}" class="back-link">← Back to list</a>
+
+<div class="todo-card {% if todo.completed %}completed{% endif %}">
+    <span class="status {% if todo.completed %}done{% else %}pending{% endif %}">
+        {% if todo.completed %}✓ Completed{% else %}○ Pending{% endif %}
+    </span>
+
+    <h1>{{ todo.title }}</h1>
+
+    <p class="meta">
+        Created: {{ todo.created_at|date:"F j, Y, g:i a" }}
+    </p>
+
+    <div class="actions">
+        <form action="{% url 'toggle_todo' todo.id %}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-toggle" type="submit">
+                {% if todo.completed %}Mark as Pending{% else %}Mark as Done{% endif %}
+            </button>
+        </form>
+        <form action="{% url 'delete_todo' todo.id %}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-delete" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

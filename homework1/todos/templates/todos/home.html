@@ -1,0 +1,83 @@
+{% extends 'todos/base.html' %}
+
+{% block title %}Todo List{% endblock %}
+
+{% block extra_styles %}
+.add-form {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+.add-form input[type="text"] {
+flex: 1;
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 4px;
+font-size: 16px;
+}
+.add-form button {
+padding: 10px 20px;
+background: #007bff;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+}
+.add-form button:hover { background: #0056b3; }
+.todo-list { list-style: none; padding: 0; }
+.todo-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 15px;
+background: white;
+margin-bottom: 10px;
+border-radius: 4px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.todo-item.completed span {
+text-decoration: line-through;
+color: #888;
+}
+.todo-item span { flex: 1; }
+.todo-item a {
+text-decoration: none;
+color: #333;
+flex: 1;
+}
+.todo-item a:hover { color: #007bff; }
+.todo-item.completed a {
+text-decoration: line-through;
+color: #888;
+}
+{% endblock %}
+
+{% block content %}
+<h1>📝 Todo List</h1>
+
+<form class="add-form" action="{% url 'add_todo' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Add a new todo..." required>
+    <button type="submit">Add</button>
+</form>
+
+<ul class="todo-list">
+    {% for todo in todos %}
+    <li class="todo-item {% if todo.completed %}completed{% endif %}">
+        <a href="{% url 'todo_detail' todo.id %}">{{ todo.title }}</a>
+        <form action="{% url 'toggle_todo' todo.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-toggle" type="submit">
+                {% if todo.completed %}Undo{% else %}Done{% endif %}
+            </button>
+        </form>
+        <form action="{% url 'delete_todo' todo.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-delete" type="submit">Delete</button>
+        </form>
+    </li>
+    {% empty %}
+    <li class="todo-item">No todos yet. Add one above!</li>
+    {% endfor %}
+</ul>
+{% endblock %}
