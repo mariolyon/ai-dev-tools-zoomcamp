@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from .models import Todo
 
 
@@ -9,10 +10,16 @@ def todo_list(request):
 
 def add_todo(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
+        title = request.POST.get('title', '').strip()
         if title:
-            Todo.objects.create(title=title)
-    return redirect('todo_list')
+            todo = Todo.objects.create(title=title)
+            return JsonResponse({
+                'id': todo.id,
+                'title': todo.title,
+                'completed': todo.completed,
+            }, status=201)
+        return JsonResponse({'error': 'Title is required'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 def toggle_todo(request, todo_id):

@@ -55,11 +55,35 @@ color: #888;
 {% block content %}
 <h1>📝 Todo List</h1>
 
-<form class="add-form" action="{% url 'add_todo' %}" method="post">
+<form class="add-form" id="add-todo-form">
     {% csrf_token %}
     <input type="text" name="title" placeholder="Add a new todo..." required>
     <button type="submit">Add</button>
 </form>
+
+<script>
+    document.getElementById('add-todo-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('{% url "add_todo" %}', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.status === 201) {
+                window.location.href = '{% url "todo_list" %}';
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to add todo');
+            }
+        } catch (error) {
+            alert('An error occurred');
+        }
+    });
+</script>
 
 <ul class="todo-list">
     {% for todo in todos %}
