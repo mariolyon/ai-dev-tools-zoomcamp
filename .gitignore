@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+homework2/backend/node_modules
+homework2/frontend/node_modules
+homework2/frontend/.svelte-kit

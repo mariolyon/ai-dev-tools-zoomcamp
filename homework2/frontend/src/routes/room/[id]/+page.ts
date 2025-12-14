@@ -1,0 +1,10 @@
+import type { PageLoad } from './$types';
+
+export const load: PageLoad = ({ params }) => {
+  return {
+    sessionId: params.id
+  };
+};
+
+export const ssr = false;
+
