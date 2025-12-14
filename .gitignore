@@ -208,3 +208,5 @@ __marimo__/
 homework2/backend/node_modules
 homework2/frontend/node_modules
 homework2/frontend/.svelte-kit
+homework2/node_modules/.bin
+homework2/node_modules
