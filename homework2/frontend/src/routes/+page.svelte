@@ -1,26 +1,35 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
+  import { goto } from "$app/navigation";
+  import { browser } from "$app/environment";
 
   let isCreating = $state(false);
-  let joinCode = $state('');
-  let error = $state('');
+  let joinCode = $state("");
+  let error = $state("");
+
+  // Derive API URL from current location
+  function getApiUrl(): string {
+    if (!browser) return "http://localhost:3001";
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    return `${protocol}//${host}:3001`;
+  }
 
   async function createSession() {
     isCreating = true;
-    error = '';
+    error = "";
 
     try {
-      const res = await fetch('http://localhost:3001/api/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+      const res = await fetch(`${getApiUrl()}/api/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (!res.ok) throw new Error('Failed to create session');
+      if (!res.ok) throw new Error("Failed to create session");
 
       const data = await res.json();
       goto(`/room/${data.id}`);
     } catch (e) {
-      error = 'Failed to create session. Is the server running?';
+      error = "Failed to create session. Is the server running?";
       isCreating = false;
     }
   }
@@ -32,7 +41,7 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       joinSession();
     }
   }
@@ -286,7 +295,11 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    background: linear-gradient(
+      135deg,
+      var(--accent-cyan),
+      var(--accent-purple)
+    );
     color: var(--bg-deep);
   }
 
@@ -327,7 +340,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .divider {
@@ -398,4 +413,3 @@
     }
   }
 </style>
-

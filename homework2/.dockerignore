@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+backend/dist
+frontend/build
+frontend/.svelte-kit
+
+# Development files
+.git
+.gitignore
+*.md
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/vitest.config.ts
+
+# Misc
+*.log
+npm-debug.log*
+pnpm-debug.log*

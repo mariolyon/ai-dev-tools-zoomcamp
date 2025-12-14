@@ -7,8 +7,10 @@ A real-time collaborative coding interview platform with syntax highlighting and
 - 🔗 **Create & Share Links** - Generate unique session links to share with candidates
 - ✏️ **Real-time Collaboration** - All participants see code changes instantly via WebSocket
 - 🎨 **Syntax Highlighting** - Support for JavaScript, TypeScript, Python, Java, C++, Rust, and Go
-- ▶️ **In-browser Execution** - Run JavaScript/TypeScript code safely in a Web Worker sandbox
+- ▶️ **In-browser Execution** - Run JavaScript/TypeScript in a Web Worker sandbox, and Python via Pyodide (WebAssembly)
+- 🐍 **Python Support** - Full Python 3.12 execution in the browser using Pyodide
 - 👥 **Participant Tracking** - See how many people are connected to the session
+- 🐳 **Docker Support** - Easy deployment with Docker
 
 ## Tech Stack
 
@@ -137,10 +139,45 @@ homework2/
 | `user_joined` | Server → Client | New participant joined |
 | `user_left` | Server → Client | Participant left |
 
+## Docker Deployment
+
+### Build the Docker Image
+
+```bash
+docker build -t codeview .
+```
+
+### Run the Container
+
+```bash
+docker run -p 3000:3000 -p 3001:3001 codeview
+```
+
+The application will be available at:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+
+### Run in Background (Detached Mode)
+
+```bash
+docker run -d -p 3000:3000 -p 3001:3001 --name codeview codeview
+```
+
+### Useful Docker Commands
+
+| Command | Description |
+|---------|-------------|
+| `docker logs codeview` | View container logs |
+| `docker logs -f codeview` | Follow logs in real-time |
+| `docker stop codeview` | Stop the container |
+| `docker start codeview` | Start a stopped container |
+| `docker rm codeview` | Remove the container |
+| `docker rmi codeview` | Remove the image |
+
 ## Security Notes
 
-- Code execution is sandboxed in a Web Worker with a 5-second timeout
-- Only JavaScript/TypeScript can be executed in the browser
+- JavaScript/TypeScript execution is sandboxed in a Web Worker with a 5-second timeout
+- Python execution runs via Pyodide (WebAssembly) in the browser with a 10-second timeout
 - Sessions are stored in memory (cleared on server restart)
 - For production, consider adding authentication and persistent storage
 
