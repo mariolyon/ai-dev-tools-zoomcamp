@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy, tick } from 'svelte';
-  import { goto } from '$app/navigation';
-  import CodeEditor from '$lib/components/CodeEditor.svelte';
-  import OutputPanel from '$lib/components/OutputPanel.svelte';
-  import { wsStore, type ConnectionState } from '$lib/stores/websocket';
-  import { executeCode } from '$lib/utils/codeRunner';
+  import { onMount, onDestroy, tick } from "svelte";
+  import { goto } from "$app/navigation";
+  import CodeEditor from "$lib/components/CodeEditor.svelte";
+  import OutputPanel from "$lib/components/OutputPanel.svelte";
+  import { wsStore, type ConnectionState } from "$lib/stores/websocket";
+  import { executeCode, preloadPyodide } from "$lib/utils/codeRunner";
 
   interface Props {
     data: { sessionId: string };
@@ -12,46 +12,53 @@
 
   let { data }: Props = $props();
 
-  let code = $state('// Loading...');
-  let language = $state('javascript');
-  let output = $state('');
+  let code = $state("// Loading...");
+  let language = $state("javascript");
+  let output = $state("");
   let isRunning = $state(false);
   let copied = $state(false);
   let editorComponent: CodeEditor;
-  let connectionState = $state<ConnectionState>('disconnected');
+  let connectionState = $state<ConnectionState>("disconnected");
   let participantCount = $state(0);
-  let error = $state('');
+  let error = $state("");
 
   const languages = [
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-    { value: 'cpp', label: 'C++' },
-    { value: 'rust', label: 'Rust' },
-    { value: 'go', label: 'Go' },
+    { value: "javascript", label: "JavaScript" },
+    { value: "typescript", label: "TypeScript" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "cpp", label: "C++" },
+    { value: "rust", label: "Rust" },
+    { value: "go", label: "Go" },
   ];
 
   onMount(async () => {
     // First fetch the session to get initial state
     try {
-      const res = await fetch(`http://localhost:3001/api/sessions/${data.sessionId}`);
+      const res = await fetch(
+        `http://localhost:3001/api/sessions/${data.sessionId}`,
+      );
       if (!res.ok) {
         if (res.status === 404) {
-          error = 'Session not found';
+          error = "Session not found";
           return;
         }
-        throw new Error('Failed to fetch session');
+        throw new Error("Failed to fetch session");
       }
 
       const session = await res.json();
       code = session.code;
       language = session.language;
 
+      // Preload Pyodide if the session starts with Python
+      if (session.language === "python") {
+        preloadPyodide();
+      }
+
       await tick();
       editorComponent?.updateCode(code);
     } catch (e) {
-      error = 'Failed to connect to server. Is the backend running?';
+      error = "Failed to connect to server. Is the backend running?";
       return;
     }
 
@@ -65,19 +72,19 @@
     });
 
     // Handle incoming messages
-    const unsubInit = wsStore.on('init', (data) => {
+    const unsubInit = wsStore.on("init", (data) => {
       code = data.code;
       language = data.language;
       participantCount = data.participantCount;
       tick().then(() => editorComponent?.updateCode(data.code));
     });
 
-    const unsubCodeUpdate = wsStore.on('code_update', (data) => {
+    const unsubCodeUpdate = wsStore.on("code_update", (data) => {
       code = data.code;
       editorComponent?.updateCode(data.code);
     });
 
-    const unsubLangChange = wsStore.on('language_change', (data) => {
+    const unsubLangChange = wsStore.on("language_change", (data) => {
       language = data.language;
     });
 
@@ -92,18 +99,29 @@
 
   function handleCodeChange(newCode: string) {
     code = newCode;
-    wsStore.send('code_update', { code: newCode });
+    wsStore.send("code_update", { code: newCode });
   }
 
   function handleLanguageChange(e: Event) {
     const target = e.target as HTMLSelectElement;
     language = target.value;
-    wsStore.send('language_change', { language: target.value });
+    wsStore.send("language_change", { language: target.value });
+
+    // Preload Pyodide when Python is selected for faster first execution
+    if (target.value === "python") {
+      preloadPyodide();
+    }
   }
 
   async function runCode() {
     isRunning = true;
-    output = '';
+    output = "";
+
+    // Show loading message for Python (Pyodide may need to load)
+    if (language === "python") {
+      output =
+        "🐍 Loading Python runtime (first run may take a few seconds)...";
+    }
 
     try {
       const result = await executeCode(code, language);
@@ -126,11 +144,11 @@
     const link = window.location.href;
     await navigator.clipboard.writeText(link);
     copied = true;
-    setTimeout(() => copied = false, 2000);
+    setTimeout(() => (copied = false), 2000);
   }
 
   function goHome() {
-    goto('/');
+    goto("/");
   }
 </script>
 
@@ -157,9 +175,16 @@
         </button>
         <div class="session-info">
           <span class="session-id">Session: {data.sessionId}</span>
-          <div class="connection-status" class:connected={connectionState === 'connected'}>
+          <div
+            class="connection-status"
+            class:connected={connectionState === "connected"}
+          >
             <span class="status-dot"></span>
-            <span>{connectionState === 'connected' ? 'Connected' : connectionState}</span>
+            <span
+              >{connectionState === "connected"
+                ? "Connected"
+                : connectionState}</span
+            >
           </div>
         </div>
       </div>
@@ -167,7 +192,10 @@
       <div class="header-center">
         <div class="participants">
           <span class="participant-icon">👥</span>
-          <span>{participantCount} {participantCount === 1 ? 'participant' : 'participants'}</span>
+          <span
+            >{participantCount}
+            {participantCount === 1 ? "participant" : "participants"}</span
+          >
         </div>
       </div>
 
@@ -184,7 +212,11 @@
 
     <div class="toolbar">
       <div class="toolbar-left">
-        <select class="language-select" value={language} onchange={handleLanguageChange}>
+        <select
+          class="language-select"
+          value={language}
+          onchange={handleLanguageChange}
+        >
           {#each languages as lang}
             <option value={lang.value}>{lang.label}</option>
           {/each}
@@ -192,11 +224,7 @@
       </div>
 
       <div class="toolbar-right">
-        <button
-          class="btn btn-run"
-          onclick={runCode}
-          disabled={isRunning}
-        >
+        <button class="btn btn-run" onclick={runCode} disabled={isRunning}>
           {#if isRunning}
             <span class="spinner"></span>
             Running...
@@ -380,7 +408,11 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    background: linear-gradient(
+      135deg,
+      var(--accent-cyan),
+      var(--accent-purple)
+    );
     color: var(--bg-deep);
   }
 
@@ -410,7 +442,8 @@
     flex-shrink: 0;
   }
 
-  .toolbar-left, .toolbar-right {
+  .toolbar-left,
+  .toolbar-right {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -460,7 +493,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .workspace {
@@ -513,4 +548,3 @@
     }
   }
 </style>
-
