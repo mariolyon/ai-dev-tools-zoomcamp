@@ -277,7 +277,8 @@ describe('Client-Server Integration: Complete User Flows', () => {
       expect(session.id).toBeDefined();
       expect(session.id.length).toBe(10);
       expect(session.shareLink).toContain(session.id);
-      expect(session.shareLink).toMatch(/^http:\/\/localhost:5173\/room\//);
+      // API returns relative path - frontend constructs full URL
+      expect(session.shareLink).toMatch(/^\/room\//);
 
       interviewer.disconnect();
     });

@@ -104,14 +104,14 @@ describe('REST API Integration Tests', () => {
     });
   });
 
-  describe('GET /', () => {
+  describe('GET /api/health', () => {
     it('should return health check status', async () => {
-      const response = await fetch(`${baseUrl}/`);
+      const response = await fetch(`${baseUrl}/api/health`);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.status).toBe('ok');
-      expect(data.message).toBe('CodeView Interview Platform API');
+      expect(data.message).toBe('CodeView API');
     });
   });
 

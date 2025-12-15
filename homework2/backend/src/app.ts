@@ -1,8 +1,11 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { nanoid } from 'nanoid';
 import { WebSocketServer, WebSocket } from 'ws';
 import type { Server } from 'http';
+import { readFileSync, existsSync } from 'fs';
+import { join, isAbsolute } from 'path';
 
 // Types
 export interface Session {
@@ -23,20 +26,26 @@ export interface WSMessage {
 // Session storage (exported for testing)
 export const sessions = new Map<string, Session>();
 
+// Path to frontend build
+const FRONTEND_BUILD_PATH = process.env.FRONTEND_PATH || '../frontend/build';
+
+// Resolve path helper - handles both absolute and relative paths
+function resolveFrontendPath(...paths: string[]): string {
+    if (isAbsolute(FRONTEND_BUILD_PATH)) {
+        return join(FRONTEND_BUILD_PATH, ...paths);
+    }
+    return join(process.cwd(), FRONTEND_BUILD_PATH, ...paths);
+}
+
 // Create the Hono app
 export function createApp() {
     const app = new Hono();
 
-    // CORS middleware
-    app.use('/*', cors({
+    // CORS middleware (still needed for development)
+    app.use('/api/*', cors({
         origin: ['http://localhost:5173', 'http://localhost:3000'],
         credentials: true,
     }));
-
-    // Health check
-    app.get('/', (c) => {
-        return c.json({ status: 'ok', message: 'CodeView Interview Platform API' });
-    });
 
     // Create a new session
     app.post('/api/sessions', (c) => {
@@ -50,9 +59,10 @@ export function createApp() {
         };
         sessions.set(id, session);
 
+        // Return relative share link - frontend will construct full URL
         return c.json({
             id,
-            shareLink: `http://localhost:5173/room/${id}`,
+            shareLink: `/room/${id}`,
             createdAt: session.createdAt
         });
     });
@@ -84,6 +94,27 @@ export function createApp() {
             createdAt: s.createdAt,
         }));
         return c.json(sessionList);
+    });
+
+    // Health check endpoint
+    app.get('/api/health', (c) => {
+        return c.json({ status: 'ok', message: 'CodeView API' });
+    });
+
+    // Serve static files from frontend build
+    app.use('/*', serveStatic({
+        root: FRONTEND_BUILD_PATH,
+        rewriteRequestPath: (path) => path,
+    }));
+
+    // Fallback to index.html for SvelteKit client-side routing
+    app.get('*', (c) => {
+        const indexPath = resolveFrontendPath('index.html');
+        if (existsSync(indexPath)) {
+            const html = readFileSync(indexPath, 'utf-8');
+            return c.html(html);
+        }
+        return c.json({ error: 'Frontend not found' }, 404);
     });
 
     return app;

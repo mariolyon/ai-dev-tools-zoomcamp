@@ -11,8 +11,7 @@
     "build:backend": "pnpm --filter codeview-backend build",
     "build:frontend": "pnpm --filter codeview-frontend build",
     "test": "pnpm --filter codeview-backend test",
-    "test:watch": "pnpm --filter codeview-backend test:watch",
-    "install:all": "pnpm install"
+    "test:watch": "pnpm --filter codeview-backend test:watch"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

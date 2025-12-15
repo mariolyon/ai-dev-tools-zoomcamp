@@ -1,19 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
   import { goto } from "$app/navigation";
-  import { browser } from "$app/environment";
   import CodeEditor from "$lib/components/CodeEditor.svelte";
   import OutputPanel from "$lib/components/OutputPanel.svelte";
   import { wsStore, type ConnectionState } from "$lib/stores/websocket";
   import { executeCode, preloadPyodide } from "$lib/utils/codeRunner";
-
-  // Derive API URL from current location
-  function getApiUrl(): string {
-    if (!browser) return "http://localhost:3001";
-    const protocol = window.location.protocol;
-    const host = window.location.hostname;
-    return `${protocol}//${host}:3001`;
-  }
 
   interface Props {
     data: { sessionId: string };
@@ -44,7 +35,7 @@
   onMount(async () => {
     // First fetch the session to get initial state
     try {
-      const res = await fetch(`${getApiUrl()}/api/sessions/${data.sessionId}`);
+      const res = await fetch(`/api/sessions/${data.sessionId}`);
       if (!res.ok) {
         if (res.status === 404) {
           error = "Session not found";

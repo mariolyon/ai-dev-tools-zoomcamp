@@ -141,6 +141,8 @@ homework2/
 
 ## Docker Deployment
 
+The application runs on a **single port** (3001), with the backend serving both the API and the static frontend files.
+
 ### Build the Docker Image
 
 ```bash
@@ -150,17 +152,15 @@ docker build -t codeview .
 ### Run the Container
 
 ```bash
-docker run -p 3000:3000 -p 3001:3001 codeview
+docker run -p 3001:3001 codeview
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
+The application will be available at: **http://localhost:3001**
 
 ### Run in Background (Detached Mode)
 
 ```bash
-docker run -d -p 3000:3000 -p 3001:3001 --name codeview codeview
+docker run -d -p 3001:3001 --name codeview codeview
 ```
 
 ### Useful Docker Commands
@@ -173,6 +173,14 @@ docker run -d -p 3000:3000 -p 3001:3001 --name codeview codeview
 | `docker start codeview` | Start a stopped container |
 | `docker rm codeview` | Remove the container |
 | `docker rmi codeview` | Remove the image |
+
+### Deploy to Cloud Platforms
+
+The single-port architecture makes deployment simple on platforms like:
+- **Railway** - `railway up`
+- **Fly.io** - `fly launch && fly deploy`
+- **Render** - Connect GitHub repo and deploy
+- **Google Cloud Run** - `gcloud run deploy`
 
 ## Security Notes
 

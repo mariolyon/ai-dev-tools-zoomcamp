@@ -7,6 +7,7 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 15000,
     teardownTimeout: 15000,
+    pool: 'vmThreads',
   },
 });
 

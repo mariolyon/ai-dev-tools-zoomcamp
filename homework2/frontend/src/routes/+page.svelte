@@ -1,25 +1,16 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { browser } from "$app/environment";
 
   let isCreating = $state(false);
   let joinCode = $state("");
   let error = $state("");
-
-  // Derive API URL from current location
-  function getApiUrl(): string {
-    if (!browser) return "http://localhost:3001";
-    const protocol = window.location.protocol;
-    const host = window.location.hostname;
-    return `${protocol}//${host}:3001`;
-  }
 
   async function createSession() {
     isCreating = true;
     error = "";
 
     try {
-      const res = await fetch(`${getApiUrl()}/api/sessions`, {
+      const res = await fetch("/api/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

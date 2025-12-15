@@ -6,5 +6,7 @@ export const load: PageLoad = ({ params }) => {
   };
 };
 
+// Disable prerendering and SSR for this dynamic route
+export const prerender = false;
 export const ssr = false;
 
